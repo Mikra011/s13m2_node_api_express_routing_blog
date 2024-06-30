@@ -17,6 +17,7 @@ router.get('/', (req, res) => {
 
 router.get('/:id', (req, res) => {
   const { id } = req.params
+
   Post.findById(id)
     .then(post => {
       if (post) {
@@ -34,14 +35,12 @@ router.get('/:id', (req, res) => {
 router.post('/', (req, res) => {
   const { title, contents } = req.body
 
-  // Validate the input
   if (!title || !contents) {
     return res.status(400).json({
       message: "Please provide title and contents for the post"
     })
   }
 
-  // Insert the post into the database
   Post.insert(req.body)
     .then(postId => {
       return Post.findById(postId.id)
@@ -57,6 +56,67 @@ router.post('/', (req, res) => {
     })
 })
 
+router.put('/:id', (req, res) => {
+  const { id } = req.params
+  const { title, contents } = req.body
 
+  if (!title || !contents) {
+    res.status(400).json({
+      message: 'Please provide title and contents for the post',
+    })
+  }
+
+  Post.findById(id)
+    .then(stuff => {
+      if (!stuff) {
+        res.status(404).json({
+          message: "The post with the specified ID does not exist",
+        })
+      } else {
+        return Post.update(req.params.id, req.body)
+      }
+    })
+    .then(updated => {
+      if (updated) {
+        return Post.findById(req.params.id)
+      }
+    })
+    .then(post => {
+      if (post) {
+        res.json(post)
+      }
+    })
+    .catch(error => {
+      console.log(error);
+      res.status(500).json({
+        message: "The post information could not be received",
+      })
+    })
+})
+
+router.delete('/:id', (req, res) => {
+  const { id } = req.params
+
+  Post.findById(id)
+    .then(post => {      
+      if (!post) {
+        res.status(404).json({
+          message: "The post with the specified ID does not exist",
+        })
+      } else {
+        return Post.remove(id)
+          .then(() => {
+            res.json(post)
+          })
+      }
+    })
+  
+    .catch(error => {
+      console.log(error)
+      res.status(500).json({
+        message: "The post could not be removed",
+      })
+    })
+})
 
 module.exports = router
