@@ -61,7 +61,7 @@ router.put('/:id', (req, res) => {
   const { title, contents } = req.body
 
   if (!title || !contents) {
-    res.status(400).json({
+    return res.status(400).json({
       message: 'Please provide title and contents for the post',
     })
   }
@@ -69,16 +69,16 @@ router.put('/:id', (req, res) => {
   Post.findById(id)
     .then(stuff => {
       if (!stuff) {
-        res.status(404).json({
+        return res.status(404).json({
           message: "The post with the specified ID does not exist",
         })
       } else {
-        return Post.update(req.params.id, req.body)
+        return Post.update(id, req.body)
       }
     })
     .then(updated => {
       if (updated) {
-        return Post.findById(req.params.id)
+        return Post.findById(id)
       }
     })
     .then(post => {
@@ -87,12 +87,13 @@ router.put('/:id', (req, res) => {
       }
     })
     .catch(error => {
-      console.log(error);
+      console.log(error)
       res.status(500).json({
         message: "The post information could not be received",
       })
     })
 })
+
 
 router.delete('/:id', (req, res) => {
   const { id } = req.params
@@ -100,11 +101,11 @@ router.delete('/:id', (req, res) => {
   Post.findById(id)
     .then(post => {
       if (!post) {
-        return res.status(404).json({
+        res.status(404).json({
           message: "The post with the specified ID does not exist",
         })
       } else {
-        return Post.remove(id)
+        Post.remove(id)
           .then(() => {
             res.json(post)
           })
